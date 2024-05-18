@@ -3,7 +3,9 @@ import chainlit as cl
 from langchain.schema.runnable import Runnable
 from langchain.schema.runnable.config import RunnableConfig
 from chainlit.input_widget import Select
-
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import create_retrieval_chain
+from langchain import hub
 from dotenv import load_dotenv,dotenv_values
 import warnings
 warnings.filterwarnings("ignore")
@@ -71,16 +73,15 @@ async def on_chat_start():
         openai_api_key=openai.api_key,
         azure_endpoint=openai.api_base,
         openai_api_type=openai.api_type,
-        deployment_name="gpt-35-turbo-16k")
-        
+        deployment_name="gpt-4")
+
+    """ 
     system_prompt = (
-    "Sie sind ein deutschsprachiger Assistent, der die Fragen des Benutzers auf der Grundlage des unten angegebenen Kontexts beantwortet. "
-    "Es ist sehr wichtig, dass Sie von der ersten Antwort an in der Sprache des Benutzers antworten, die unten angegeben ist."
+    "Sie sind ein Deutsch-verstehender Assistent, der die Fragen des Benutzers auf der Grundlage des unten angegebenen Kontexts beantwortet. "
     "Erzeugen Sie die Antwort in Form einer Empfehlungsliste für die Frage, die nur den Titel zurückgibt, dem im Kontext der 'Name der Organisation' vorangestellt ist. "
     "Wenn es sich bei der Benutzeranfrage nicht um eine Frage, sondern um eine Begrüßung handelt, antworten Sie als Assistent mit einer korrekten Antwort. "
     "Wenn Sie die Antwort nicht wissen, sagen Sie: 'Da kann ich Ihnen leider nicht helfen'. "
     "Kontext: {context}"
-    "Sprache: {value}"
     )
 
     prompt = ChatPromptTemplate.from_messages(
@@ -89,18 +90,15 @@ async def on_chat_start():
             ("human", "{input}"),
         ]
     )
+    """ 
+    
+    prompt = hub.pull("langchain-ai/retrieval-qa-chat")
+    print(prompt)
 
-
-    rag_chain = (
-        {"context": AzureRetriever(),"value":lambda x: value,  "input": RunnablePassthrough()} 
-        | prompt 
-        | chat_llm
-        | StrOutputParser() 
-    )
+    combine_docs_chain = create_stuff_documents_chain(chat_llm, prompt)
+    rag_chain = create_retrieval_chain(AzureRetriever(), combine_docs_chain)
     
     cl.user_session.set("runnable", rag_chain)
-    
-    
     
     
     await cl.Avatar(
@@ -116,11 +114,10 @@ async def on_message(message: cl.Message):
 
     msg = cl.Message(content="")
     lang, translation=tranlate_instance.translate(message.content)
-    async for chunk in runnable.astream(
-        {"question": translation},
-        config=RunnableConfig(callbacks=[cl.LangchainCallbackHandler()]),
-    ):
-        await msg.stream_token(chunk)
+    inputs = {"input": translation}
+    result = await runnable.ainvoke(inputs)
+    msg = cl.Message(content=result["answer"], disable_feedback=True)
+
     await msg.send()
 
     await msg.update()

@@ -51,7 +51,7 @@ class AzureRetriever(BaseRetriever):
         pass
 
     def get_embedding(self, text, model="text-embedding-ada-002"):
-        text= text['question'] #for dictionary in chainlit
+        #text= text['input'] #for dictionary in chainlit
         text = text.replace("\n", " ")
         return openai.Embedding.create(input = [text], engine=model).data[0].embedding
     
@@ -103,6 +103,9 @@ class AzureRetriever(BaseRetriever):
             context= ("\t   ").join(context)
             contexts.append(context)
         relevant_result= text_to_docs(contexts)
+        # json_serializable_doc = {
+        # 'page_content': relevant_result.page_content,
+        # 'metadata': relevant_result.metadata}
         return relevant_result
     
 class translate():
@@ -115,7 +118,6 @@ class translate():
                 'X-ClientTraceId': str(uuid.uuid4())
             }
         text_json= [{'text':text}]
-        print(text_json, "translation")
         if detect_lang:
             path_detect = '/detect'
             constructed_url_detect = translation_url + path_detect
@@ -150,7 +152,7 @@ class translate():
         return language, translation
 
 
-
+"""
 class chatBot():
   chat_llm = AzureChatOpenAI(
     openai_api_version=openai.api_version,
@@ -181,5 +183,5 @@ class chatBot():
     | chat_llm
     | StrOutputParser() 
   )
-
+"""
 
