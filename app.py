@@ -2,7 +2,8 @@
 import chainlit as cl
 from langchain.schema.runnable import Runnable
 from langchain.schema.runnable.config import RunnableConfig
-from chainlit.input_widget import Select
+from langchain.memory import ConversationBufferMemory
+from chainlit.input_widget import Select, Switch
 
 from langchain import hub
 from dotenv import load_dotenv,dotenv_values
@@ -52,7 +53,14 @@ openai.api_base = os.getenv("embedding_url")
 openai.api_version = "2023-05-15" 
 credential = AzureKeyCredential(key)
 tranlate_instance= translate()
-value=""
+value_language=""
+bool_plain_language = False
+
+@cl.cache
+def get_memory():
+    return ConversationBufferMemory(memory_key="chat_history")
+
+
 
 @cl.on_chat_start
 async def on_chat_start():
@@ -64,10 +72,11 @@ async def on_chat_start():
                 label="Language",
                 values=["English", "German", "Spanish", "Arabic", "Turkish", "French"],
                 initial_index=0,
-            )
+            ),
+            Switch(id="PlainLanguage", label="Plain language", initial=False),
         ]
     ).send()
-    value = settings["Language"]
+    value_lanuage = settings["Language"]
 
     cl.user_session.set("runnable", rag_chain.rag_chain) 
     await cl.Avatar(
@@ -78,8 +87,12 @@ async def on_chat_start():
 
 @cl.on_settings_update
 async def setup_agent(settings: cl.ChatSettings):
-    value= settings["Language"]
-    update_language.update(mappings[value])
+    value_language = settings["Language"]
+    original_config_load_translation = cl.config.load_translation
+    cl.config.load_translation = lambda _: original_config_load_translation("en-US")
+    memory = get_memory()
+    bool_plain_language = settings["PlainLanguage"]
+    update_language.update(mappings[value_language])
     
 
 @cl.on_message
@@ -87,6 +100,7 @@ async def on_message(message: cl.Message):
     runnable = cl.user_session.get("runnable")  # type: Runnable
 
     msg = cl.Message(content="")
+    msg.author = "SocialRobo"
     _,translation=tranlate_instance.translate(message.content,detect_lang=False, language= update_language.current_lang)
     inputs = {"input": translation}
     result = await runnable.ainvoke(inputs)

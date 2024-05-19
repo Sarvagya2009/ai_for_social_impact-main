@@ -1,3 +1,4 @@
 # Please insert folders and files that should not be uploaded
 __pycache__
 secrets.env
+capito_api_test*
