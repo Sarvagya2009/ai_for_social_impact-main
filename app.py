@@ -58,6 +58,14 @@ value=""
 @cl.on_chat_start
 async def on_chat_start():
 
+    text_content = "• healthcare institutions \n • places for children \n • Many things more! \n Please use the widget next to the message bar to change langauge."
+    image = cl.Image(path="public\logo_light.png", name="image1", display="inline")
+    elements = [
+        cl.Text(name="You could ask me about:", content=text_content, display="inline")
+    ]
+   
+
+
     settings = await cl.ChatSettings(
         [
             Select(
@@ -73,8 +81,19 @@ async def on_chat_start():
     cl.user_session.set("runnable", rag_chain.rag_chain) 
     await cl.Avatar(
         name="SocialRobo",
-        url="ai_for_social_impact-main\public\socialRobo.png",
+        url="public\socialRobo.png",
     ).send()
+    await cl.Message(
+        content="Hello, I am SocialRobo and I am here to help you! \n Do you have any questions about the Socialmap Berlin?",
+        elements=elements,
+        author="SocialRobo"
+    ).send()
+    await cl.Message(
+        content="The chatbot is powered by the good folks at Paritätischer Wohlfahrtsverband and Team Multilang",
+        elements=[image],
+        author="SocialRobo"
+    ).send()
+    
 
 """Update language if user updates the language setting"""
 @cl.on_settings_update
@@ -83,20 +102,26 @@ async def setup_agent(settings: cl.ChatSettings):
     update_language.update(mappings[value])
     write_settings_to_file(update_language.current_lang)
     
+@cl.step
+async def Artificial_Intelligence(message):
+    runnable = cl.user_session.get("runnable")  # type: Runnable
+    _,translation=tranlate_instance.translate(message.content,detect_lang=False, language= update_language.current_lang)
+    inputs = {"input": translation}
+    result = await runnable.ainvoke(inputs)
+    _, translated_answer= tranlate_instance.translate(result["answer"], target_lang=update_language.current_lang,detect_lang=False, language= 'de')
+    return translated_answer
 
 
 """Translate user input into German, await response and get response translated back to user target language"""
 @cl.on_message
 async def on_message(message: cl.Message):
-    runnable = cl.user_session.get("runnable")  # type: Runnable
+    
 
     msg = cl.Message(content="")
-    _,translation=tranlate_instance.translate(message.content,detect_lang=False, language= update_language.current_lang)
-    inputs = {"input": translation}
-    result = await runnable.ainvoke(inputs)
-    _, translated_answer= tranlate_instance.translate(result["answer"], target_lang=update_language.current_lang,detect_lang=False, language= 'de')
-    msg = cl.Message(content=translated_answer, disable_feedback=True)
-    print(result["answer"], "##########")
-
+    
+    translated_answer= await Artificial_Intelligence(message)
+    msg = cl.Message(content=translated_answer, disable_feedback=True, author="SocialRobo")
+    
     await msg.send()
+    await cl.sleep(5)
     await msg.update()
