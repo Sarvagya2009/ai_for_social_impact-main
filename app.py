@@ -33,7 +33,7 @@ from langchain_community.document_loaders.telegram import text_to_docs
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
 from chatbot import AzureRetriever, translate
-from settings import rag_chain, mappings, update_language, write_settings_to_file
+from settings import rag_chain, mappings, write_settings_to_file, interface_langs, Language, reverse_mappings
 
 """Import environmental variables"""
 APP_ROOT = os.path.join(os.path.dirname(__file__))
@@ -57,11 +57,12 @@ value=""
 """On chat start, initialize and set the llm chain as the runnable"""
 @cl.on_chat_start
 async def on_chat_start():
-
-    text_content = "• healthcare institutions \n • places for children \n • Many things more! \n Please use the widget next to the message bar to change langauge."
+    choices= ["English", "German", "Spanish", "Arabic", "Turkish", "French"]
+    current_lang= Language()
+    text_content = interface_langs[current_lang]["Options"]
     image = cl.Image(path="public\logo_light.png", name="image1", display="inline")
     elements = [
-        cl.Text(name="You could ask me about:", content=text_content, display="inline")
+        cl.Text(name=interface_langs[current_lang]["Instruct"], content=text_content, display="inline")
     ]
    
 
@@ -71,8 +72,8 @@ async def on_chat_start():
             Select(
                 id="Language",
                 label="Language",
-                values=["English", "German", "Spanish", "Arabic", "Turkish", "French"],
-                initial_index=0,
+                values=choices,
+                initial_index=choices.index(reverse_mappings[current_lang]),
             )
         ]
     ).send()
@@ -84,12 +85,12 @@ async def on_chat_start():
         url="public\socialRobo.png",
     ).send()
     await cl.Message(
-        content="Hello, I am SocialRobo and I am here to help you! \n Do you have any questions about the Socialmap Berlin?",
+        content=interface_langs[current_lang]["Intro"],
         elements=elements,
         author="SocialRobo"
     ).send()
     await cl.Message(
-        content="The chatbot is powered by the good folks at Paritätischer Wohlfahrtsverband and Team Multilang",
+        content=interface_langs[current_lang]["Acknowledge"],
         elements=[image],
         author="SocialRobo"
     ).send()
@@ -99,8 +100,8 @@ async def on_chat_start():
 @cl.on_settings_update
 async def setup_agent(settings: cl.ChatSettings):
     value= settings["Language"]
-    update_language.update(mappings[value])
-    write_settings_to_file(update_language.current_lang)
+    print(value)
+    write_settings_to_file(mappings[value])
     
 @cl.step
 async def Artificial_Intelligence(message):
