@@ -53,19 +53,18 @@ openai.api_version = "2023-05-15"
 credential = AzureKeyCredential(key)
 tranlate_instance= translate()
 value=""
+current_lang= Language()
 
 """On chat start, initialize and set the llm chain as the runnable"""
 @cl.on_chat_start
 async def on_chat_start():
     choices= ["English", "German", "Spanish", "Arabic", "Turkish", "French"]
-    current_lang= Language()
+    
     text_content = interface_langs[current_lang]["Options"]
     image = cl.Image(path="public\logo_light.png", name="image1", display="inline")
     elements = [
         cl.Text(name=interface_langs[current_lang]["Instruct"], content=text_content, display="inline")
     ]
-   
-
 
     settings = await cl.ChatSettings(
         [
@@ -106,10 +105,10 @@ async def setup_agent(settings: cl.ChatSettings):
 @cl.step
 async def Artificial_Intelligence(message):
     runnable = cl.user_session.get("runnable")  # type: Runnable
-    _,translation=tranlate_instance.translate(message.content,detect_lang=False, language= update_language.current_lang)
+    _,translation=tranlate_instance.translate(message.content,detect_lang=False, language= current_lang)
     inputs = {"input": translation}
     result = await runnable.ainvoke(inputs)
-    _, translated_answer= tranlate_instance.translate(result["answer"], target_lang=update_language.current_lang,detect_lang=False, language= 'de')
+    _, translated_answer= tranlate_instance.translate(result["answer"], target_lang=current_lang,detect_lang=False, language= 'de')
     return translated_answer
 
 

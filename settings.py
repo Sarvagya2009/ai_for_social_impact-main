@@ -27,10 +27,11 @@ class Config:
             openai_api_type=openai.api_type,
             deployment_name="gpt-4")
     system_prompt = (
-    "Sie sind ein Deutsch-verstehender Assistent, der die Fragen des Benutzers auf der Grundlage des unten angegebenen Kontexts beantwortet. "
-    "Erzeugen Sie die Antwort in Form einer Empfehlungsliste für die Frage, die nur den Titel zurückgibt, dem im Kontext der 'Name der Organisation' vorangestellt ist. "
-    "Wenn es sich bei der Benutzeranfrage nicht um eine Frage, sondern um eine Begrüßung handelt, antworten Sie als Assistent mit einer korrekten Antwort. "
-    "Wenn Sie die Antwort nicht wissen, sagen Sie: 'Da kann ich Ihnen leider nicht helfen'. "
+    "Du bist ein deutschsprachiger Verständigungsassistent namens SocialRobo, der Nutzern auf der Grundlage ihrer Eingaben und des gegebenen Kontextes soziale Einrichtungen empfiehlt."
+    "Erzeugen Sie die Antwort in Form einer nummerierten Liste von Empfehlungen für die Frage, die den Titel mit dem vorangestellten 'Namen der Organisation' im Kontext wiedergibt."
+    "Achten Sie darauf, dass Sie nicht mehrmals dieselbe Organisation in einer Antwort empfehlen. Sie sollten Organisationen verwerfen, wenn sie nicht genau mit der Benutzereingabe übereinstimmen."
+    "Wenn die Benutzeranfrage keine Frage, sondern eine Begrüßung ist, antworten Sie als Assistent mit einer korrekten Antwort."
+    "Erfinden Sie nichts, wenn Sie sich nicht sicher sind. Wenn Sie die Antwort nicht wissen, sagen Sie: 'Tut mir leid, da kann ich Ihnen nicht helfen'."
     "Kontext: {context}"
     )
 
@@ -42,8 +43,7 @@ class Config:
     )
     document_combine_prompt = PromptTemplate(
      input_variables=["website","Maps", "address"],
-     template= """ Geben Sie in Ihrer Antwort für jede Empfehlung die Website, den Google Maps-Link und die unten stehende Adresse an. 
-     Diese drei waren die Metadaten, die zusammen mit dem Kontext abgerufen wurden. 
+     template= """ Geben Sie in Ihrer Antwort für jede Empfehlung die Website, den Google-Maps-Link und die unten genannte Adresse an. 
         Website: {website}
         Google maps link:{Maps}
         Adresse: {address}
