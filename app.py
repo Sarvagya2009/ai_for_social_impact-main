@@ -33,7 +33,7 @@ from langchain_community.document_loaders.telegram import text_to_docs
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
 from chatbot import AzureRetriever, translate
-from config import rag_chain, mappings, update_language
+from settings import rag_chain, mappings, update_language, write_settings_to_file
 
 """Import environmental variables"""
 APP_ROOT = os.path.join(os.path.dirname(__file__))
@@ -81,8 +81,10 @@ async def on_chat_start():
 async def setup_agent(settings: cl.ChatSettings):
     value= settings["Language"]
     update_language.update(mappings[value])
-   
+    write_settings_to_file(update_language.current_lang)
     
+
+
 """Translate user input into German, await response and get response translated back to user target language"""
 @cl.on_message
 async def on_message(message: cl.Message):

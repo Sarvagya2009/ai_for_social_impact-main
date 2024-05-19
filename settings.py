@@ -8,6 +8,7 @@ from langchain.chains import create_retrieval_chain
 from chatbot import AzureRetriever, translate
 from langchain_core.prompts import PromptTemplate
 import openai
+import time
 
 APP_ROOT = os.path.join(os.path.dirname(__file__))
 dotenv_path = os.path.join(APP_ROOT,'secrets.env')
@@ -69,3 +70,10 @@ class Language:
         self.current_lang=lang
 
 update_language= Language()
+
+def write_settings_to_file(new_lang):
+    current_settings = new_lang
+    log_file= "config.toml"
+    with open(log_file, "a") as f:
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        f.write(f"{timestamp} - Language: {current_settings}\n")
