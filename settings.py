@@ -90,7 +90,7 @@ def write_settings_to_file(new_lang):
     current_settings = new_lang
     log_file= "config.toml"
     with open(log_file, "a") as f:
-        f.write(f"Language: {current_settings}\n")
+        f.write(f"\nLanguage: {current_settings}")
 
 
 interface_langs={
