@@ -6,14 +6,14 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
 from chatbot import AzureRetriever, translate
-
+from langchain_core.prompts import PromptTemplate
 import openai
 
 APP_ROOT = os.path.join(os.path.dirname(__file__))
 dotenv_path = os.path.join(APP_ROOT,'secrets.env')
 load_dotenv(Path(dotenv_path))
 
-
+"""Initialize LLM Chain with prompts and retreiver"""
 class Config:
     openai.api_type = "azure"
     openai.api_key = os.getenv("embedding_key")
@@ -39,11 +39,19 @@ class Config:
             ("human", "{input}"),
         ]
     )
-    combine_docs_chain = create_stuff_documents_chain(chat_llm, prompt)
+    document_combine_prompt = PromptTemplate(
+     input_variables=["website","Maps", "address"],
+     template= """ Geben Sie in Ihrer Antwort für jede Empfehlung die Website, den Google Maps-Link und die unten stehende Adresse an. 
+     Diese drei waren die Metadaten, die zusammen mit dem Kontext abgerufen wurden. 
+        Website: {website}
+        Google maps link:{Maps}
+        Adresse: {address}
+        """)
+    combine_docs_chain = create_stuff_documents_chain(chat_llm, prompt, document_prompt=document_combine_prompt)
     rag_chain = create_retrieval_chain(AzureRetriever(), combine_docs_chain)
 
-
 rag_chain= Config()
+
 
 mappings={"English": "en", 
           "German": "de",
@@ -53,6 +61,8 @@ mappings={"English": "en",
           "Spanish": "es"
           }
 
+
+"""Keep track of current user language here"""
 class Language:
     current_lang='en'
     def update(self, lang= 'en'):

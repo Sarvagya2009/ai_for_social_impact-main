@@ -35,7 +35,7 @@ from langchain.schema.output_parser import StrOutputParser
 from chatbot import AzureRetriever, translate
 from config import rag_chain, mappings, update_language
 
-
+"""Import environmental variables"""
 APP_ROOT = os.path.join(os.path.dirname(__file__))
 dotenv_path = os.path.join(APP_ROOT,'secrets.env')
 load_dotenv(Path(dotenv_path))
@@ -54,6 +54,7 @@ credential = AzureKeyCredential(key)
 tranlate_instance= translate()
 value=""
 
+"""On chat start, initialize and set the llm chain as the runnable"""
 @cl.on_chat_start
 async def on_chat_start():
 
@@ -75,13 +76,14 @@ async def on_chat_start():
         url="ai_for_social_impact-main\public\socialRobo.png",
     ).send()
 
-
+"""Update language if user updates the language setting"""
 @cl.on_settings_update
 async def setup_agent(settings: cl.ChatSettings):
     value= settings["Language"]
     update_language.update(mappings[value])
+   
     
-
+"""Translate user input into German, await response and get response translated back to user target language"""
 @cl.on_message
 async def on_message(message: cl.Message):
     runnable = cl.user_session.get("runnable")  # type: Runnable
@@ -93,6 +95,6 @@ async def on_message(message: cl.Message):
     _, translated_answer= tranlate_instance.translate(result["answer"], target_lang=update_language.current_lang,detect_lang=False, language= 'de')
     msg = cl.Message(content=translated_answer, disable_feedback=True)
     print(result["answer"], "##########")
-    await msg.send()
 
+    await msg.send()
     await msg.update()

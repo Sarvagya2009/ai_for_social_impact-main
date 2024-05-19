@@ -26,7 +26,7 @@ from langchain_community.document_loaders.telegram import text_to_docs
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
 
-
+"""Import environmental variables"""
 APP_ROOT = os.path.join(os.path.dirname(__file__))
 dotenv_path = os.path.join(APP_ROOT,'secrets.env')
 
@@ -44,7 +44,7 @@ openai.api_version = "2023-05-15"
 credential = AzureKeyCredential(key)
 
 
-
+"""Class for the hybrid search information retrieval"""
 class AzureRetriever(BaseRetriever):
 
     def __int__(self):
@@ -57,7 +57,7 @@ class AzureRetriever(BaseRetriever):
     
     def _get_relevant_documents(self, query: str) -> List[Document]:
 
-        contexts=[]
+        relevant_result=[]
         query_vector= self.get_embedding(query)
         search_client = SearchClient(service_endpoint, index_name, AzureKeyCredential(key))  
         vector_query = VectorizedQuery(vector=query_vector, 
@@ -67,22 +67,23 @@ class AzureRetriever(BaseRetriever):
         results = search_client.search(  
             search_text=query,  
             vector_queries=[vector_query],
-            select=["title", "website", "full_text"],
+            select=["title", "website", "full_text", "latitude", "longitude", "address"],
             top=3
-            )  
-        
+            )     
         for result in results:
             context= result['full_text'].split('\n    ')
             context= context[:4]
+            
             context= [i.strip() for i in context]
             context= ("\t   ").join(context)
-            contexts.append(context)
-        relevant_result= text_to_docs(contexts)
+            relevant_result.append(Document(page_content=context,
+            metadata={"title": result["title"], "website": result["website"], 
+                      "Maps": f"http://maps.google.com/?q={result["latitude"]},{result['longitude']}", "address":result["address"]}))
         return relevant_result
     
     async def _aget_relevant_documents(self, query: str) -> List[Document]:
         """async native implementation."""
-        contexts=[]
+        relevant_result=[]
         query_vector= self.get_embedding(query)
         search_client = SearchClient(service_endpoint, index_name, AzureKeyCredential(key))  
         vector_query = VectorizedQuery(vector=query_vector, 
@@ -92,22 +93,21 @@ class AzureRetriever(BaseRetriever):
         results = search_client.search(  
             search_text=query,  
             vector_queries=[vector_query],
-            select=["title", "website", "full_text"],
+            select=["title", "website", "full_text", "latitude", "longitude", "address"],
             top=3
-            )  
-        
+            )     
         for result in results:
             context= result['full_text'].split('\n    ')
             context= context[:4]
+            
             context= [i.strip() for i in context]
             context= ("\t   ").join(context)
-            contexts.append(context)
-        relevant_result= text_to_docs(contexts)
-        # json_serializable_doc = {
-        # 'page_content': relevant_result.page_content,
-        # 'metadata': relevant_result.metadata}
+            relevant_result.append(Document(page_content=context,
+            metadata={"title": result["title"], "website": result["website"], 
+                      "Maps": f"http://maps.google.com/?q={result["latitude"]},{result['longitude']}", "address":result["address"]}))
         return relevant_result
-    
+
+"""Translate text to and fro between German and target language"""  
 class translate():
     def translate(self, text, target_lang='de', detect_lang=True, language= ""):
         headers = {
