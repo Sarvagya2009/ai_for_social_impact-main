@@ -3,8 +3,7 @@ import chainlit as cl
 from langchain.schema.runnable import Runnable
 from langchain.schema.runnable.config import RunnableConfig
 from chainlit.input_widget import Select
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains import create_retrieval_chain
+
 from langchain import hub
 from dotenv import load_dotenv,dotenv_values
 import warnings
@@ -34,6 +33,8 @@ from langchain_community.document_loaders.telegram import text_to_docs
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
 from chatbot import AzureRetriever, translate
+from config import rag_chain, mappings, update_language
+
 
 APP_ROOT = os.path.join(os.path.dirname(__file__))
 dotenv_path = os.path.join(APP_ROOT,'secrets.env')
@@ -68,32 +69,7 @@ async def on_chat_start():
     ).send()
     value = settings["Language"]
 
-    chat_llm = AzureChatOpenAI(
-        openai_api_version=openai.api_version,
-        openai_api_key=openai.api_key,
-        azure_endpoint=openai.api_base,
-        openai_api_type=openai.api_type,
-        deployment_name="gpt-4")
-
-    
-    system_prompt = (
-    "Sie sind ein Deutsch-verstehender Assistent, der die Fragen des Benutzers auf der Grundlage des unten angegebenen Kontexts beantwortet. "
-    "Erzeugen Sie die Antwort in Form einer Empfehlungsliste für die Frage, die nur den Titel zurückgibt, dem im Kontext der 'Name der Organisation' vorangestellt ist. "
-    "Wenn es sich bei der Benutzeranfrage nicht um eine Frage, sondern um eine Begrüßung handelt, antworten Sie als Assistent mit einer korrekten Antwort. "
-    "Wenn Sie die Antwort nicht wissen, sagen Sie: 'Da kann ich Ihnen leider nicht helfen'. "
-    "Kontext: {context}"
-    )
-
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", system_prompt),
-            ("human", "{input}"),
-        ]
-    )
-    combine_docs_chain = create_stuff_documents_chain(chat_llm, prompt)
-    rag_chain = create_retrieval_chain(AzureRetriever(), combine_docs_chain)
-    
-    cl.user_session.set("runnable", rag_chain) 
+    cl.user_session.set("runnable", rag_chain.rag_chain) 
     await cl.Avatar(
         name="SocialRobo",
         url="ai_for_social_impact-main\public\socialRobo.png",
@@ -103,6 +79,7 @@ async def on_chat_start():
 @cl.on_settings_update
 async def setup_agent(settings: cl.ChatSettings):
     value= settings["Language"]
+    update_language.update(mappings[value])
     
 
 @cl.on_message
@@ -110,11 +87,12 @@ async def on_message(message: cl.Message):
     runnable = cl.user_session.get("runnable")  # type: Runnable
 
     msg = cl.Message(content="")
-    _,translation=tranlate_instance.translate(message.content, detect_lang=True)
+    _,translation=tranlate_instance.translate(message.content,detect_lang=False, language= update_language.current_lang)
     inputs = {"input": translation}
     result = await runnable.ainvoke(inputs)
-    msg = cl.Message(content=result["answer"], disable_feedback=True)
-    print(result["answer"], "##########",value)
+    _, translated_answer= tranlate_instance.translate(result["answer"], target_lang=update_language.current_lang,detect_lang=False, language= 'de')
+    msg = cl.Message(content=translated_answer, disable_feedback=True)
+    print(result["answer"], "##########")
     await msg.send()
 
     await msg.update()
