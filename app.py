@@ -51,6 +51,7 @@ openai.api_base = os.getenv("embedding_url")
 openai.api_version = "2023-05-15" 
 credential = AzureKeyCredential(key)
 tranlate_instance= translate()
+value=""
 
 @cl.on_chat_start
 async def on_chat_start():
@@ -66,7 +67,6 @@ async def on_chat_start():
         ]
     ).send()
     value = settings["Language"]
-    print(value, "lang")
 
     chat_llm = AzureChatOpenAI(
         openai_api_version=openai.api_version,
@@ -75,7 +75,7 @@ async def on_chat_start():
         openai_api_type=openai.api_type,
         deployment_name="gpt-4")
 
-    """ 
+    
     system_prompt = (
     "Sie sind ein Deutsch-verstehender Assistent, der die Fragen des Benutzers auf der Grundlage des unten angegebenen Kontexts beantwortet. "
     "Erzeugen Sie die Antwort in Form einer Empfehlungsliste für die Frage, die nur den Titel zurückgibt, dem im Kontext der 'Name der Organisation' vorangestellt ist. "
@@ -90,34 +90,31 @@ async def on_chat_start():
             ("human", "{input}"),
         ]
     )
-    """ 
-    
-    prompt = hub.pull("langchain-ai/retrieval-qa-chat")
-    print(prompt)
-
     combine_docs_chain = create_stuff_documents_chain(chat_llm, prompt)
     rag_chain = create_retrieval_chain(AzureRetriever(), combine_docs_chain)
     
-    cl.user_session.set("runnable", rag_chain)
-    
-    
+    cl.user_session.set("runnable", rag_chain) 
     await cl.Avatar(
         name="SocialRobo",
         url="ai_for_social_impact-main\public\socialRobo.png",
     ).send()
 
 
+@cl.on_settings_update
+async def setup_agent(settings: cl.ChatSettings):
+    value= settings["Language"]
+    
 
 @cl.on_message
 async def on_message(message: cl.Message):
     runnable = cl.user_session.get("runnable")  # type: Runnable
 
     msg = cl.Message(content="")
-    lang, translation=tranlate_instance.translate(message.content)
+    _,translation=tranlate_instance.translate(message.content, detect_lang=True)
     inputs = {"input": translation}
     result = await runnable.ainvoke(inputs)
     msg = cl.Message(content=result["answer"], disable_feedback=True)
-
+    print(result["answer"], "##########",value)
     await msg.send()
 
     await msg.update()
