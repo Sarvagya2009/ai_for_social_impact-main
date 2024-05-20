@@ -3,7 +3,7 @@ import chainlit as cl
 from langchain.schema.runnable import Runnable
 from langchain.schema.runnable.config import RunnableConfig
 from chainlit.input_widget import Select
-
+import re
 from langchain import hub
 from dotenv import load_dotenv,dotenv_values
 import warnings
@@ -103,12 +103,20 @@ async def setup_agent(settings: cl.ChatSettings):
 @cl.step
 async def Artificial_Intelligence(message):
     runnable = cl.user_session.get("runnable")  # type: Runnable
+    url_pattern = r"(?P<url>https?://[^\s]+)"
     _,translation=tranlate_instance.translate(message.content,detect_lang=False, language= current_lang)
     inputs = {"input": translation}
     result = await runnable.ainvoke(inputs)
-    print(result['answer'])
+    #print(result["answer"])
+    matches_pre_translation = re.findall(url_pattern, result['answer'])
     _, translated_answer= tranlate_instance.translate(result["answer"], target_lang=current_lang,detect_lang=False, language= 'de')
-    return translated_answer
+    matches_post_translation = re.findall(url_pattern, translated_answer)
+    if len(matches_pre_translation)==len(matches_post_translation):
+        for i in range(len(matches_pre_translation)):
+            translated_answer= translated_answer.replace(matches_post_translation[i], matches_pre_translation[i])
+        return translated_answer
+    else:
+        return translated_answer
 
 
 """Translate user input into German, await response and get response translated back to user target language"""
@@ -122,5 +130,4 @@ async def on_message(message: cl.Message):
     msg = cl.Message(content=translated_answer, disable_feedback=True, author="SocialRobo")
     
     await msg.send()
-    await cl.sleep(5)
     await msg.update()

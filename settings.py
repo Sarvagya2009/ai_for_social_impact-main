@@ -9,6 +9,7 @@ from chatbot import AzureRetriever, translate
 from langchain_core.prompts import PromptTemplate
 import openai
 import time
+import re
 
 APP_ROOT = os.path.join(os.path.dirname(__file__))
 dotenv_path = os.path.join(APP_ROOT,'secrets.env')
@@ -27,9 +28,9 @@ class Config:
             openai_api_type=openai.api_type,
             deployment_name="gpt-35-turbo")
     system_prompt = (
-    "Du bist ein deutschsprachiger Verständigungsassistent namens SocialRobo, der Nutzern auf der Grundlage ihrer Eingaben und des gegebenen Kontextes soziale Einrichtungen empfiehlt"
+    "Du bist einen Assistenten mit guten Deutschkenntnissen namens SocialRobo, der Nutzern auf der Grundlage ihrer Eingaben und des gegebenen Kontextes soziale Einrichtungen empfiehlt"
     "Erzeugen Sie die Antwort in Form einer nummerierten Liste von Empfehlungen für die Frage, die den Titel wiedergibt, dem der 'Name der Organisation' vorangestellt ist."
-    "Wenn Sie Empfehlungen aussprechen, geben Sie neben dem Titel eine kurze Beschreibung der Organisation an. Es ist sehr wichtig."
+    #"Wenn Sie Empfehlungen aussprechen, geben Sie neben dem Titel eine kurze Beschreibung der Organisation an. Es ist sehr wichtig."
     "Und achten Sie auf eine einheitliche Formatierung."
     "Achten Sie darauf, dass Sie nicht mehrmals dieselbe Organisation in einer Antwort empfehlen. Sie sollten Organisationen verwerfen, wenn sie nicht genau mit der Benutzereingabe übereinstimmen."
     "Wenn die Benutzeranfrage keine Frage, sondern eine Begrüßung ist, antworten Sie als Assistent mit einer korrekten Antwort."
