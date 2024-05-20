@@ -54,7 +54,7 @@ tranlate_instance= translate()
 value=""
 current_lang= Language()
 
-"""On chat start, initialize and set the llm chain as the runnable"""
+"""On chat start, initialize the starting text depending on the current language and set the llm chain as the runnable"""
 @cl.on_chat_start
 async def on_chat_start():
     choices= ["English", "German", "Spanish", "Arabic", "Turkish", "French"]
@@ -99,7 +99,8 @@ async def on_chat_start():
 async def setup_agent(settings: cl.ChatSettings):
     value= settings["Language"]
     write_settings_to_file(mappings[value])
-    
+
+"""Send input to the runnable, get the response, get it translated while conserving the links"""
 @cl.step
 async def Artificial_Intelligence(message):
     runnable = cl.user_session.get("runnable")  # type: Runnable

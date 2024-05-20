@@ -15,7 +15,7 @@ APP_ROOT = os.path.join(os.path.dirname(__file__))
 dotenv_path = os.path.join(APP_ROOT,'secrets.env')
 load_dotenv(Path(dotenv_path))
 
-"""Initialize LLM Chain with prompts and retreiver"""
+""" Initialize LLM Chain with prompts and retreiver """
 class Config:
     openai.api_type = "azure"
     openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -56,7 +56,7 @@ class Config:
 
 rag_chain= Config()
 
-
+""" Mappings to covert between the languages and their codes for the APIs """
 mappings={"English": "en", 
           "German": "de",
           "Arabic": "ar",
@@ -74,7 +74,7 @@ reverse_mappings={
 }
 
 
-"""Keep track of current user language here"""
+""" Keep track of current user language here """
 def Language():
     log_file= "config.toml"
     with open(log_file, 'r') as f:
@@ -88,14 +88,14 @@ def Language():
         current_lang='en'
     return current_lang
 
-
+""" Write to the toml file for chainlit to keep track of current language and restart app """
 def write_settings_to_file(new_lang):
     current_settings = new_lang
     log_file= "config.toml"
     with open(log_file, "a") as f:
         f.write(f"\nLanguage: {current_settings}")
 
-
+""" Store interface language for all 6 languages """
 interface_langs={
     "en":{
         "Intro": "Hello, I am SocialRobo and I am here to help you! \n Do you have any questions about the Socialmap Berlin?",

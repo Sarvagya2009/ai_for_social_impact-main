@@ -153,36 +153,4 @@ class translate():
         return language, translation
 
 
-"""
-class chatBot():
-  chat_llm = AzureChatOpenAI(
-    openai_api_version=openai.api_version,
-    openai_api_key=openai.api_key,
-    azure_endpoint=openai.api_base,
-    openai_api_type=openai.api_type,
-    deployment_name="gpt-35-turbo-16k")
-  
-  system_prompt = (
-  "Sie sind ein deutschsprachiger Assistent, der die Fragen des Benutzers auf der Grundlage des unten angegebenen Kontexts beantwortet. "
-  "Erzeugen Sie die Antwort in Form einer Empfehlungsliste für die Frage, die nur den Titel zurückgibt, dem im Kontext der 'Name der Organisation' vorangestellt ist. "
-  "Wenn es sich bei der Benutzeranfrage nicht um eine Frage, sondern um eine Begrüßung handelt, antworten Sie als Assistent mit einer korrekten Antwort. "
-  "Wenn Sie die Antwort nicht wissen, sagen Sie: 'Da kann ich Ihnen leider nicht helfen'. "
-  "Context: {context}"
-  )
-
-  prompt = ChatPromptTemplate.from_messages(
-      [
-          ("system", system_prompt),
-          ("human", "{input}"),
-      ]
-  )
-
-
-  rag_chain = (
-    {"context": AzureRetriever(),  "input": RunnablePassthrough()} 
-    | prompt 
-    | chat_llm
-    | StrOutputParser() 
-  )
-"""
 
