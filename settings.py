@@ -17,15 +17,15 @@ load_dotenv(Path(dotenv_path))
 """Initialize LLM Chain with prompts and retreiver"""
 class Config:
     openai.api_type = "azure"
-    openai.api_key = os.getenv("embedding_key")
-    openai.api_base = os.getenv("embedding_url")
-    openai.api_version = "2023-05-15" 
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+    openai.api_base = os.getenv("azure_endpoint")
+    openai.api_version = "2023-03-15-preview"
     chat_llm = AzureChatOpenAI(
-            openai_api_version=openai.api_version,
+            openai_api_version="2023-03-15-preview",
             openai_api_key=openai.api_key,
             azure_endpoint=openai.api_base,
             openai_api_type=openai.api_type,
-            deployment_name="gpt-4")
+            deployment_name="gpt-35-turbo")
     system_prompt = (
     "Du bist ein deutschsprachiger Verständigungsassistent namens SocialRobo, der Nutzern auf der Grundlage ihrer Eingaben und des gegebenen Kontextes soziale Einrichtungen empfiehlt."
     "Erzeugen Sie die Antwort in Form einer nummerierten Liste von Empfehlungen für die Frage, die den Titel mit dem vorangestellten 'Namen der Organisation' im Kontext wiedergibt."

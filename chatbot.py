@@ -37,11 +37,7 @@ key = os.getenv("AZURE_SEARCH_ADMIN_KEY")
 translation_url= os.getenv("url")
 translation_key= os.getenv("KEY")
 location= os.getenv("location")
-openai.api_type = "azure"
-openai.api_key = os.getenv("embedding_key")
-openai.api_base = os.getenv("embedding_url")
-openai.api_version = "2023-05-15" 
-credential = AzureKeyCredential(key)
+
 
 
 """Class for the hybrid search information retrieval"""
@@ -51,6 +47,11 @@ class AzureRetriever(BaseRetriever):
         pass
 
     def get_embedding(self, text, model="text-embedding-ada-002"):
+        openai.api_type = "azure"
+        openai.api_key = os.getenv("embedding_key")
+        openai.api_base = os.getenv("embedding_url")
+        openai.api_version = "2023-05-15" 
+        credential = AzureKeyCredential(key)
         #text= text['input'] #for dictionary in chainlit
         text = text.replace("\n", " ")
         return openai.Embedding.create(input = [text], engine=model).data[0].embedding

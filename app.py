@@ -49,7 +49,6 @@ location= os.getenv("location")
 openai.api_type = "azure"
 openai.api_key = os.getenv("embedding_key")
 openai.api_base = os.getenv("embedding_url")
-openai.api_version = "2023-05-15" 
 credential = AzureKeyCredential(key)
 tranlate_instance= translate()
 value=""
@@ -99,7 +98,6 @@ async def on_chat_start():
 @cl.on_settings_update
 async def setup_agent(settings: cl.ChatSettings):
     value= settings["Language"]
-    print(value)
     write_settings_to_file(mappings[value])
     
 @cl.step
