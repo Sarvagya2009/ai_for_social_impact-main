@@ -106,6 +106,7 @@ async def Artificial_Intelligence(message):
     _,translation=tranlate_instance.translate(message.content,detect_lang=False, language= current_lang)
     inputs = {"input": translation}
     result = await runnable.ainvoke(inputs)
+    print(result['answer'])
     _, translated_answer= tranlate_instance.translate(result["answer"], target_lang=current_lang,detect_lang=False, language= 'de')
     return translated_answer
 
