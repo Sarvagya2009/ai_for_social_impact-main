@@ -1,6 +1,5 @@
 # Please insert folders and files that should not be uploaded
 __pycache__
 secrets.env
-.files/26314072-19dc-476e-bb12-cb86ba2c124b/a6fb5aa4-036a-4276-962b-98dbbe500017.txt
-.files/3f4bc572-86e1-4035-85b0-407244a555c0/6fbadc87-fd7a-43e9-a057-4fa4d5c64ddb.txt
-.files/26314072-19dc-476e-bb12-cb86ba2c124b/460379a2-16d0-4e93-b01c-c6345de0a083.png
+test.ipynb
+
